@@ -3,15 +3,19 @@ package pieces;
 import static main.Board.*;
 
 public class Rook extends Piece {
+    boolean wasMoved;
 
     public Rook(int color,int row, int col) {
         super(color, row, col);
+        wasMoved = false;
     }
 
     @Override
     public boolean move(int row, int col) {
         if (!isMoveAllowed(row, col)) return false;
-
+        setPosition(row,col);
+        wasMoved = true;
+        return true;
     }
 
     @Override
@@ -36,6 +40,10 @@ public class Rook extends Piece {
         if (deltaCol == 0 && !(deltaRow == 0)){
             if (deltaRow > 0 ) direction = 3;
             else direction = 4;
+        }
+
+        if (!wasMoved && (deltaCol == 4 || deltaCol == -3)) {
+            if (!checkForCastling(this, row, col)) return false;
         }
 
         switch (direction){

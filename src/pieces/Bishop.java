@@ -1,5 +1,6 @@
 package pieces;
 
+import static main.Board.getPieceAtSquare;
 import static main.Board.isSquareTaken;
 
 public class Bishop extends Piece {
@@ -8,11 +9,6 @@ public class Bishop extends Piece {
         super(color, row, col);
     }
 
-    @Override
-    public boolean move(int row, int col) {
-        if (!isMoveAllowed(row, col)) return false;
-
-    }
 
     @Override
     public boolean isMoveAllowed(int row, int col) {
@@ -26,6 +22,8 @@ public class Bishop extends Piece {
         if (!(deltaRow == 0) && !(deltaCol == 0)) return false;
 
         if (row < 0 || row >7 || col < 0 || col >7) return false;
+
+        if (((this.getColor()) ^ (getPieceAtSquare(row,col).getColor())) == 0) return false;
 
 
         if (deltaRow > 0){

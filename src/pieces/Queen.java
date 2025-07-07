@@ -9,11 +9,6 @@ public class Queen extends Piece {
         super(color, row, col);
     }
 
-    @Override
-    public boolean move(int row, int col) {
-        if (!isMoveAllowed(row, col)) return false;
-
-    }
 
     @Override
     public boolean isMoveAllowed(int row, int col) {
@@ -33,6 +28,8 @@ public class Queen extends Piece {
             if (((this.getColor()) ^ (getPieceAtSquare(row,col).getColor())) == 0) return false;
         }
 
+        if (((this.getColor()) ^ (getPieceAtSquare(row,col).getColor())) == 0) return false;
+
         if (deltaRow == 0 && !(deltaCol == 0)){
             if (deltaCol > 0) direction = 1;
             else direction = 5;
@@ -51,6 +48,7 @@ public class Queen extends Piece {
             if (deltaCol > 0) direction = 8;
             else direction = 6;
         }
+
 
         switch (direction){
             case 1:

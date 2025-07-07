@@ -22,6 +22,10 @@ public class Board {
         return Board[row][col] == null;
     }
 
+    public static void setPieceAtSquare(int row, int col, Piece piece){
+        Board[row][col] = piece;
+    }
+
 
 
 

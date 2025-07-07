@@ -8,11 +8,6 @@ public class Knight extends Piece {
         super(color, row, col);
     }
 
-    @Override
-    public boolean move(int row, int col) {
-        if (!isMoveAllowed(row, col)) return false;
-
-    }
 
     @Override
     public boolean isMoveAllowed(int row, int col) {

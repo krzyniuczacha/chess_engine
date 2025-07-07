@@ -40,14 +40,21 @@ public abstract class Piece {
         return col;
     }
 
-    public int setPosition(int row, int col){
+    public void setPosition(int row, int col){
         this.row = row;
         this.col = col;
+
+        setPieceAtSquare(row, col, this);
     }
 
-    public abstract boolean move(int row, int col);
+    public boolean move(int row, int col){
+        if (!isMoveAllowed(row, col)) return false;
+        setPosition(row,col);
+        return true;
+    }
 
     public abstract boolean isMoveAllowed(int row, int col);
+
 
 
 
