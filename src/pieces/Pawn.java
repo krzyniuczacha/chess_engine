@@ -8,7 +8,7 @@ public class Pawn extends Piece {
     public Pawn (int color,int row, int col) {
         super(color, row, col);
     }
-
+// en passent
 
     @Override
     public boolean isMoveAllowed(int row, int col) {

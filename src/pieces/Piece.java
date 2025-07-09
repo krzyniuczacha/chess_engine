@@ -56,7 +56,4 @@ public abstract class Piece {
     public abstract boolean isMoveAllowed(int row, int col);
 
 
-
-
-
 }

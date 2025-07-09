@@ -3,7 +3,7 @@ package pieces;
 import static main.Board.*;
 
 public class Rook extends Piece {
-    boolean wasMoved;
+    public boolean wasMoved;
 
     public Rook(int color,int row, int col) {
         super(color, row, col);
@@ -42,9 +42,6 @@ public class Rook extends Piece {
             else direction = 4;
         }
 
-        if (!wasMoved && (deltaCol == 4 || deltaCol == -3)) {
-            if (!checkForCastling(this, row, col)) return false;
-        }
 
         switch (direction){
             case 1:
