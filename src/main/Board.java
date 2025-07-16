@@ -1,15 +1,21 @@
 package main;
 
 import pieces.*;
+import util.Move;
+
+import java.util.Stack;
 
 public class Board {
     final static int MAX_ROW = 8;
     final static int MAX_COL = 8;
     private static Piece[][] board;
+    private static Stack<Move> moveHistory;
 
+    //TODO: FEN notation initialization and game state saving
 
     public Board(){
         this.board = new Piece[MAX_ROW][MAX_COL];
+        this.moveHistory = new Stack<>();
         //createBoard(this);
     }
 
@@ -23,6 +29,15 @@ public class Board {
     }
 
     public static void setPieceAtSquare(int row, int col, Piece piece){
+        boolean capture = false;
+        Piece pieceCaptured = getPieceAtSquare(row, col);
+
+        if (isSquareTaken(row, col)){
+            capture = true;
+        }
+
+        moveHistory.push(new Move(piece, row, col, capture, pieceCaptured));
+
         int row1 = piece.getRow();
         int col1 = piece.getCol();
         board[row][col] = piece;
@@ -66,7 +81,34 @@ public class Board {
         if (rook.getClass() != Rook.class) return false;
         if (((Rook) rook).wasMoved) return false;
 
-        
+        return true;
+    }
+
+    public static boolean checkForEnPassant(Piece piece, int row, int col){
+        int color = piece.getColor();
+
+        Move lastMove = moveHistory.peek();
+
+        Piece otherPawn = lastMove.getPieceMoved();
+
+
+        if (color == Piece.WHITE) {
+            if (piece.getRow() != 4) return false;
+        }
+        else {
+            if (piece.getCol() != 3) return false;
+        }
+
+        if ((otherPawn.getColor() ^ piece.getColor()) == 0) return false;
+
+        if (otherPawn.getCol() != col) return false;
+
+        if (Math.abs(piece.getCol() - col) != 1) return false;
+
+        if (otherPawn.getClass() != Pawn.class) return false;
+
+        if (!lastMove.didPawnMoveTwoSquares()) return false;
+
 
         return true;
     }

@@ -3,12 +3,13 @@ package pieces;
 import static main.Board.*;
 
 public class King extends Piece {
-    boolean wasMoved;
+    boolean wasMoved ;
     boolean isCastling;
 
     public King(int color,int row, int col) {
         super(color, row, col);
         wasMoved = false;
+        isCastling = false;
     }
 
     @Override
@@ -55,5 +56,7 @@ public class King extends Piece {
             this.setPosition(row,col + 1);
             rook.setPosition(row,col + 2);
         }
+
+        isCastling = false;
     }
 }

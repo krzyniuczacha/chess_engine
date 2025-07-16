@@ -8,8 +8,8 @@ import javax.imageio.ImageIO;
 
 public abstract class Piece {
     private int row,col,color;
-    final int WHITE = 1;
-    final int BLACK = 0;
+    public static final int WHITE = 1;
+    public static final int BLACK = 0;
 
     public Piece(int color, int col, int row){
         this.color = color;
@@ -41,10 +41,10 @@ public abstract class Piece {
     }
 
     public void setPosition(int row, int col){
+        setPieceAtSquare(row, col, this);
+
         this.row = row;
         this.col = col;
-
-        setPieceAtSquare(row, col, this);
     }
 
     public boolean move(int row, int col){
