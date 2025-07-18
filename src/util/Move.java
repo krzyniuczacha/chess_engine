@@ -12,7 +12,6 @@ public class Move {
     int colTo;
     boolean wasPieceCaptured;
     Piece otherPiece;
-    boolean wasCastling;
 
     public Move(Piece pieceMoved, int rowTo, int colTo, boolean wasPieceCaptured, Piece otherPiece) {
         this.pieceMoved = pieceMoved;

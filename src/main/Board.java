@@ -2,21 +2,26 @@ package main;
 
 import pieces.*;
 import util.Move;
+import static util.FEN.fenToBoard;
 
 import java.util.Stack;
 
 public class Board {
-    final static int MAX_ROW = 8;
-    final static int MAX_COL = 8;
+    public final static int MAX_ROW = 8;
+    public final static int MAX_COL = 8;
     private static Piece[][] board;
     private static Stack<Move> moveHistory;
+    public static String initFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     //TODO: FEN notation initialization and game state saving
 
     public Board(){
-        this.board = new Piece[MAX_ROW][MAX_COL];
+        this.board = fenToBoard(initFenString);
         this.moveHistory = new Stack<>();
-        //createBoard(this);
+    }
+
+    public Piece[][] getBoard(){
+        return this.board;
     }
 
 
