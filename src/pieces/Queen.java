@@ -1,7 +1,6 @@
 package pieces;
 
-import static main.Board.getPieceAtSquare;
-import static main.Board.isSquareTaken;
+import static main.Board.*;
 
 public class Queen extends Piece {
 
@@ -48,6 +47,11 @@ public class Queen extends Piece {
                 if (isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) return false;
             }
         }
+
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
         return true;
     }
 }

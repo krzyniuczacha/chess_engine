@@ -111,34 +111,24 @@ public class Board {
 
         for (int r = 0; r < MAX_ROW; r++) {
             for (int c = 0; c < MAX_COL; c++) {
-                Piece piece = getPieceAtSquare(r, c);
-                if (piece != null && piece.getColor() == color) {
-                    for (int destR = 0; destR < MAX_ROW; destR++) {
-                        for (int destC = 0; destC < MAX_COL; destC++) {
-                            if (piece.isMoveValid(destR, destC)) {
-                                int originalRow = piece.getRow();
-                                int originalCol = piece.getCol();
-                                Piece capturedPiece = getPieceAtSquare(destR, destC);
+                if (canCheckBeBlocked(r, c, color)) return false;
+            }
+        }
 
-                                board[destR][destC] = piece;
-                                board[originalRow][originalCol] = null;
-                                piece.updatePositionOnly(destR, destC);
+        return true;
+    }
 
-                                boolean stillInCheck = isKingInCheck(color);
-
-                                board[originalRow][originalCol] = piece;
-                                board[destR][destC] = capturedPiece;
-                                piece.updatePositionOnly(originalRow, originalCol);
-
-                                if (!stillInCheck) {
-                                    return false;
-                                }
-                            }
-                        }
+    public static boolean canCheckBeBlocked(int row, int col, int color) {
+        Piece piece = getPieceAtSquare(row, col);
+        if (piece != null && piece.getColor() == color) {
+            for (int destR = 0; destR < MAX_ROW; destR++) {
+                for (int destC = 0; destC < MAX_COL; destC++) {
+                    if (piece.isMoveValid(destR, destC)) {
+                       if (piece.canPieceBlockCheck(destR, destC, color)) return true;
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 }

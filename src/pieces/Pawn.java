@@ -70,6 +70,11 @@ public class Pawn extends Piece {
             return !isSquareTaken(getRow() + direction, col);
         }
 
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
+
         return false;
     }
 }

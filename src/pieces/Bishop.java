@@ -1,7 +1,6 @@
 package pieces;
 
-import static main.Board.getPieceAtSquare;
-import static main.Board.isSquareTaken;
+import static main.Board.*;
 
 public class Bishop extends Piece {
 
@@ -33,6 +32,11 @@ public class Bishop extends Piece {
                 return false;
             }
         }
+
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
         return true;
     }
 }

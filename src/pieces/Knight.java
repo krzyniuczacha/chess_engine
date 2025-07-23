@@ -23,6 +23,11 @@ public class Knight extends Piece {
             return getPieceAtSquare(row, col).getColor() != this.getColor();
         }
 
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
+
         return true;
     }
 }

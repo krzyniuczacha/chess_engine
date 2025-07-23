@@ -37,6 +37,11 @@ public class Rook extends Piece {
                 if (isSquareTaken(getRow() + i * step, getCol())) return false;
             }
         }
+
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
         return true;
     }
 }

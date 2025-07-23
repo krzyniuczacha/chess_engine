@@ -76,9 +76,27 @@ public abstract class Piece {
         if (this instanceof King) ((King) this).wasMoved = true;
         if (this instanceof Pawn) ((Pawn) this).wasMoved = true;
 
-        Board.colorToMove = (Board.colorToMove == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
+        Board.colorToMove = 1 - Board.colorToMove;
         return true;
     }
 
     public abstract boolean isMoveValid(int row, int col);
+
+    public boolean canPieceBlockCheck(int row, int col, int color){
+        int originalRow = this.getRow();
+        int originalCol = this.getCol();
+        Piece capturedPiece = getPieceAtSquare(row, col);
+
+        board[row][col] = this;
+        board[originalRow][originalCol] = null;
+        this.updatePositionOnly(row, col);
+
+        boolean stillInCheck = isKingInCheck(color);
+
+        board[originalRow][originalCol] = this;
+        board[row][col] = capturedPiece;
+        this.updatePositionOnly(originalRow, originalCol);
+
+        return !stillInCheck;
+    }
 }
