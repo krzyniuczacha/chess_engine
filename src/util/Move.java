@@ -1,63 +1,34 @@
 package util;
 
-import pieces.King;
-import pieces.Pawn;
 import pieces.Piece;
 
 public class Move {
     Piece pieceMoved;
-    int rowFrom;
-    int colFrom;
-    int rowTo;
-    int colTo;
-    boolean wasPieceCaptured;
-    Piece otherPiece;
+    int startRow, startCol, endRow, endCol;
+    boolean wasCapture;
+    Piece pieceCaptured;
 
-    public Move(Piece pieceMoved, int rowTo, int colTo, boolean wasPieceCaptured, Piece otherPiece) {
+    public Move(Piece pieceMoved, int endRow, int endCol, boolean wasCapture, Piece pieceCaptured) {
         this.pieceMoved = pieceMoved;
-        rowFrom = pieceMoved.getRow();
-        colFrom = pieceMoved.getCol();
-        this.rowTo = rowTo;
-        this.colTo = colTo;
-        this.wasPieceCaptured = wasPieceCaptured;
-        this.otherPiece = otherPiece;
+        if (pieceMoved != null) {
+            this.startRow = pieceMoved.getRow();
+            this.startCol = pieceMoved.getCol();
+        }
+        this.endRow = endRow;
+        this.endCol = endCol;
+        this.wasCapture = wasCapture;
+        this.pieceCaptured = pieceCaptured;
     }
 
     public Piece getPieceMoved() {
         return pieceMoved;
     }
 
-    public int getRowFrom() {
-        return rowFrom;
+    public int getStartRow() {
+        return startRow;
     }
 
-    public int getColFrom() {
-        return colFrom;
-    }
-
-    public int getRowTo() {
-        return rowTo;
-    }
-
-    public int getColTo() {
-        return colTo;
-    }
-
-    public boolean wasPieceCaptured() {
-        return wasPieceCaptured;
-    }
-
-    public Piece getOtherPiece() {
-        return otherPiece;
-    }
-
-    public boolean didPawnMoveTwoSquares() {
-        if (pieceMoved.getClass() != Pawn.class) return false;
-        return (Math.abs(rowFrom - rowTo) == 2);
-    }
-
-    public boolean wasCastling() {
-        if (pieceMoved.getClass() != King.class) return false;
-        return (Math.abs(colFrom - colTo) == 2);
+    public int getEndRow() {
+        return endRow;
     }
 }

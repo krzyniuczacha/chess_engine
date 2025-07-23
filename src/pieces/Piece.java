@@ -1,8 +1,11 @@
 package pieces;
 
+import main.Board;
+
 import static main.Board.*;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 import javax.imageio.ImageIO;
 
@@ -11,18 +14,22 @@ public abstract class Piece {
     public static final int WHITE = 1;
     public static final int BLACK = 0;
 
-    public Piece(int color, int col, int row){
+    public Piece(int color, int row, int col){
         this.color = color;
-        this.col = col;
         this.row = row;
+        this.col = col;
     }
 
-    public BufferedImage getImage(String path){
+    public BufferedImage getImage(String name) {
         BufferedImage image = null;
-        try{
-            image = ImageIO.read(getClass().getResourceAsStream(path + ".png"));
-        }
-        catch(Exception e){
+        try {
+            File file = new File("res/pieces/" + name + ".png");
+            if (!file.exists()) {
+                System.err.println("Image file not found: " + file.getAbsolutePath());
+                return null;
+            }
+            image = ImageIO.read(file);
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return image;
@@ -40,20 +47,38 @@ public abstract class Piece {
         return col;
     }
 
-    public void setPosition(int row, int col){
-        setPieceAtSquare(row, col, this);
-
+    public void updatePositionOnly(int row, int col) {
         this.row = row;
         this.col = col;
     }
 
     public boolean move(int row, int col){
-        if (!isMoveAllowed(row, col)) return false;
-        setPosition(row,col);
+        if (!isMoveValid(row, col)) return false;
+
+        int originalRow = getRow();
+        int originalCol = getCol();
+        Piece capturedPiece = getPieceAtSquare(row, col);
+
+        addMoveToHistory(this, row, col, capturedPiece != null, capturedPiece);
+
+        board[row][col] = this;
+        board[originalRow][originalCol] = null;
+        updatePositionOnly(row, col);
+
+        if (isKingInCheck(this.getColor())) {
+            board[originalRow][originalCol] = this;
+            board[row][col] = capturedPiece;
+            updatePositionOnly(originalRow, originalCol);
+            return false;
+        }
+
+        if (this instanceof Rook) ((Rook) this).wasMoved = true;
+        if (this instanceof King) ((King) this).wasMoved = true;
+        if (this instanceof Pawn) ((Pawn) this).wasMoved = true;
+
+        Board.colorToMove = (Board.colorToMove == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
         return true;
     }
 
-    public abstract boolean isMoveAllowed(int row, int col);
-
-
+    public abstract boolean isMoveValid(int row, int col);
 }

@@ -5,75 +5,71 @@ import main.Board;
 import static main.Board.*;
 
 public class Pawn extends Piece {
-    boolean wasMoved;
-    boolean isEnPassant;
+    public boolean wasMoved;
 
-    public Pawn (int color,int row, int col) {
+    public Pawn(int color, int row, int col) {
         super(color, row, col);
         wasMoved = false;
-        isEnPassant = false;
     }
 
     @Override
     public boolean move(int row, int col) {
-        if (!isMoveAllowed(row, col)) return false;
-        if (isEnPassant) enPassantMove(row, col);
-        else setPosition(row, col);
-        wasMoved = true;
-        return true;
+        if (!isMoveValid(row, col)) return false;
+
+        boolean isEnPassant = (Math.abs(col - getCol()) == 1) && !isSquareTaken(row, col);
+
+        if (isEnPassant) {
+            int originalRow = getRow();
+            int originalCol = getCol();
+            Piece capturedPawn = getPieceAtSquare(originalRow, col);
+
+            addMoveToHistory(this, row, col, true, capturedPawn);
+
+            board[row][col] = this;
+            board[originalRow][originalCol] = null;
+            board[originalRow][col] = null;
+            updatePositionOnly(row, col);
+
+            if (isKingInCheck(this.getColor())) {
+                board[originalRow][originalCol] = this;
+                board[row][col] = null;
+                board[originalRow][col] = capturedPawn;
+                updatePositionOnly(originalRow, originalCol);
+                return false;
+            }
+            this.wasMoved = true;
+            Board.colorToMove = (Board.colorToMove == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
+            return true;
+        }
+
+        return super.move(row, col);
     }
 
     @Override
-    public boolean isMoveAllowed(int row, int col) {
-        int deltaRow = row-getRow();
-        int deltaCol = col-getCol();
-        int color = getColor();
+    public boolean isMoveValid(int row, int col) {
+        if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
+        int deltaRow = row - getRow();
+        int deltaCol = Math.abs(col - getCol());
+        int direction = (getColor() == WHITE) ? 1 : -1;
 
-        if (wasMoved && deltaRow != 1) return false;
-
-        if (deltaRow == 1 && Math.abs(deltaCol) == 1){
-            if (getPieceAtSquare(row,col) != null) {
-                if (((this.getColor()) ^ (getPieceAtSquare(row, col).getColor())) == 0) return false;
+        if (deltaCol == 1 && deltaRow == direction) {
+            if (isSquareTaken(row, col) && getPieceAtSquare(row, col).getColor() != getColor()) {
+                return true;
             }
-            else {
-                if (!wasMoved) {
-                    if (!checkForEnPassant(this, row, col)) return false;
-                    else isEnPassant = true;
-                }
-            }
+            return checkForEnPassant(this, row, col);
         }
 
-        if (deltaRow == 0 || !(deltaCol == 0)) return false;
+        if (isSquareTaken(row, col) || deltaCol != 0) return false;
 
-        if (row < 0 || row >7 || col < 0 || col >7) return false;
-
-        if (color == WHITE) {
-             if (deltaRow > 2) return false;
-        }
-        else {
-            if (deltaRow < -2) return false;
+        if (deltaRow == direction) {
+            return true;
         }
 
-        for (int i = 1; i < deltaRow; i++) {
-            if (isSquareTaken(getRow() + i, getCol())) return false;
+        if (!wasMoved && deltaRow == 2 * direction) {
+            return !isSquareTaken(getRow() + direction, col);
         }
 
-        return true;
-    }
-
-    public void enPassantMove(int row, int col) {
-        int offset;
-        if (getColor() == WHITE) {
-             offset= -1;
-        }
-        else {
-             offset = 1;
-        }
-
-        setPieceAtSquare(row + offset, col, null);
-        setPosition(row,col);
-
-        isEnPassant = false;
+        return false;
     }
 }

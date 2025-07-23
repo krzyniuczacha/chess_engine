@@ -1,62 +1,66 @@
 package pieces;
 
+import main.Board;
+
 import static main.Board.*;
 
 public class King extends Piece {
-    boolean wasMoved ;
-    boolean isCastling;
+    public boolean wasMoved;
 
     public King(int color,int row, int col) {
         super(color, row, col);
         wasMoved = false;
-        isCastling = false;
     }
 
     @Override
     public boolean move(int row, int col) {
-        if (!isMoveAllowed(row, col)) return false;
-        if (isCastling) castlingMove(row, col);
-        else setPosition(row, col);
-        wasMoved = true;
-        return true;
+        if (Math.abs(col - getCol()) == 2 && isMoveValid(row, col)) {
+            castlingMove(row, col);
+            return true;
+        }
+        return super.move(row, col);
     }
 
     @Override
-    public boolean isMoveAllowed(int row, int col) {
-        int deltaRow = row-getRow();
-        int deltaCol = col-getCol();
+    public boolean isMoveValid(int row, int col) {
+        if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
-        if (row < 0 || row >7 || col < 0 || col >7) return false;
+        int deltaRow = Math.abs(row - getRow());
+        int deltaCol = Math.abs(col - getCol());
 
-        if ((row == 0 || row == 7) && (col == 0 || col == 7) && !wasMoved) {
-            if (!checkForCastling(this, row, col)) return false;
-            else isCastling = true;
+        if (deltaRow == 0 && deltaCol == 2 && !wasMoved) {
+            return checkForCastling(this, row, col);
         }
-        else if (Math.abs(deltaCol) > 1 || Math.abs(deltaRow) > 1) return false;
 
+        if (deltaRow > 1 || deltaCol > 1) return false;
         if (deltaRow == 0 && deltaCol == 0) return false;
 
-        if (isSquareTaken(row , col)){
-            if (((this.getColor()) ^ (getPieceAtSquare(row,col).getColor())) == 0) return false;
+        if (isSquareTaken(row, col)) {
+            return getPieceAtSquare(row, col).getColor() != this.getColor();
         }
 
-        if (isCheckableAfter(this ,row, col)) return false;
+        if (isSquareAttacked(row, col, 1 - getColor())) return false;
 
         return true;
     }
 
     public void castlingMove(int row, int col) {
-        Piece rook = getPieceAtSquare(row,col);
+        int rookStartCol = col > getCol() ? 7 : 0;
+        int rookEndCol = col > getCol() ? 5 : 3;
+        Piece rook = getPieceAtSquare(row, rookStartCol);
 
-        if (col == 7){
-            this.setPosition(row,col - 1);
-            rook.setPosition(row,col - 2);
-        }
-        else if (col == 0){
-            this.setPosition(row,col + 1);
-            rook.setPosition(row,col + 2);
-        }
+        addMoveToHistory(this, row, col, false, null);
 
-        isCastling = false;
+        board[row][col] = this;
+        board[getRow()][getCol()] = null;
+        updatePositionOnly(row, col);
+
+        board[row][rookEndCol] = rook;
+        board[row][rookStartCol] = null;
+        rook.updatePositionOnly(row, rookEndCol);
+
+        this.wasMoved = true;
+        ((Rook) rook).wasMoved = true;
+        Board.colorToMove = (Board.colorToMove == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
     }
 }
