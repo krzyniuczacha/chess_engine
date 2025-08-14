@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ChessGUI extends JFrame {
     private final int TILE_SIZE = 80;
@@ -22,6 +23,7 @@ public class ChessGUI extends JFrame {
     private int selectedCol = -1;
     private List<Point> validMoves = new ArrayList<>();
     private boolean gameEnded = false;
+    private boolean gameDrawn = false;
 
     public ChessGUI() {
         board = new Board();
@@ -78,9 +80,16 @@ public class ChessGUI extends JFrame {
                 dragOffsetX = e.getX() - (col * TILE_SIZE);
                 dragOffsetY = e.getY() - (guiRow * TILE_SIZE);
                 computeValidMoves(clickedPiece);
-                boardPanel.repaint();
+            } else {
+                draggedPiece = null;
+                selectedRow = -1;
+                selectedCol = -1;
+                validMoves.clear();
             }
+
+            boardPanel.repaint();
         }
+
 
         @Override
         public void mouseDragged(MouseEvent e) {
@@ -104,22 +113,79 @@ public class ChessGUI extends JFrame {
                     }
                 }
 
+                boolean moveSucceeded = false;
                 if (validMoveFound) {
                     if (draggedPiece.move(row, col)) {
+                        moveSucceeded = true;
                         if (Board.isCheckmate(Board.colorToMove)) gameEnded = true;
+                        if (Board.isDraw()) gameDrawn = true;
                     }
                 }
 
                 draggedPiece = null;
-                selectedRow = -1;
-                selectedCol = -1;
-                validMoves.clear();
+
+                if (moveSucceeded) {
+                    selectedRow = row;
+                    selectedCol = col;
+                    validMoves.clear();
+                }
+
                 boardPanel.repaint();
 
                 String winner = (Board.colorToMove == Piece.WHITE) ? "Black" : "White";
                 if (gameEnded) JOptionPane.showMessageDialog(boardPanel, "Checkmate! " + winner + " wins.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                if (gameDrawn) JOptionPane.showMessageDialog(boardPanel, "Draw!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+    }
+
+    public static String getPromotionChoice(){
+        AtomicReference<String> selectedPiece = new AtomicReference<>(null);
+        JDialog dialog = new JDialog((Frame) null, "Pawn Promotion", true);
+        dialog.setLayout(new FlowLayout());
+
+        String color = (Board.colorToMove == Piece.WHITE) ? "white" : "black";
+
+        ImageIcon queenIcon = new ImageIcon("res/pieces/" + color + "-queen.png");
+        ImageIcon rookIcon = new ImageIcon("res/pieces/" + color + "-rook.png");
+        ImageIcon bishopIcon = new ImageIcon("res/pieces/" + color + "-bishop.png");
+        ImageIcon knightIcon = new ImageIcon("res/pieces/" + color + "-knight.png");
+
+        JButton queenButton = new JButton(queenIcon);
+        queenButton.addActionListener(e -> {
+            selectedPiece.set("Queen");
+            dialog.dispose();
+        });
+
+        JButton rookButton = new JButton(rookIcon);
+        rookButton.addActionListener(e -> {
+            selectedPiece.set("Rook");
+            dialog.dispose();
+        });
+
+        JButton bishopButton = new JButton(bishopIcon);
+        bishopButton.addActionListener(e -> {
+            selectedPiece.set("Bishop");
+            dialog.dispose();
+        });
+
+        JButton knightButton = new JButton(knightIcon);
+        knightButton.addActionListener(e -> {
+            selectedPiece.set("Knight");
+            dialog.dispose();
+        });
+
+
+        dialog.add(queenButton);
+        dialog.add(rookButton);
+        dialog.add(bishopButton);
+        dialog.add(knightButton);
+
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        return (selectedPiece.get() != null) ? selectedPiece.get() : "Queen";
     }
 
     private void computeValidMoves(Piece piece) {
@@ -137,7 +203,7 @@ public class ChessGUI extends JFrame {
         for (int row = 0; row < Board.MAX_ROW; row++) {
             for (int col = 0; col < Board.MAX_COL; col++) {
                 int guiRow = 7 - row;
-                boolean isLight = (row + col) % 2 == 0;
+                boolean isLight = (row + col) % 2 == 1;
                 g.setColor(isLight ? new Color(240, 217, 181) : new Color(181, 136, 99));
                 g.fillRect(col * TILE_SIZE, guiRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
@@ -145,18 +211,16 @@ public class ChessGUI extends JFrame {
 
         if (selectedRow != -1) {
             int guiRow = 7 - selectedRow;
-            g.setColor(new Color(100, 200, 100, 125));
+            g.setColor(new Color(0, 0, 0, 40));
             g.fillRect(selectedCol * TILE_SIZE, guiRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
 
-        g.setColor(new Color(0, 0, 0, 40));
+        g.setColor(new Color(97, 185, 97, 125)); // Semi-transparent green
         for (Point p : validMoves) {
             int guiRow = 7 - p.y;
-            int centerX = p.x * TILE_SIZE + TILE_SIZE / 2;
-            int centerY = guiRow * TILE_SIZE + TILE_SIZE / 2;
-            int radius = TILE_SIZE / 6;
-            g.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+            g.fillRect(p.x * TILE_SIZE, guiRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
+
     }
 
     private void drawPieces(Graphics g) {

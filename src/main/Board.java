@@ -2,9 +2,10 @@ package main;
 
 import pieces.*;
 import util.Move;
+
 import static util.FEN.fenToBoard;
 
-import java.util.Stack;
+import java.util.*;
 
 public class Board {
     public final static int MAX_ROW = 8;
@@ -12,7 +13,9 @@ public class Board {
     public static Piece[][] board;
     private static Stack<Move> moveHistory;
     public static String initFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    public static String testPromotion = "4k3/8/8/8/8/8/7P/4K3";
     public static int colorToMove;
+    public static int movesWithoutCapture, movesNotWithPawns;
 
     public Board(){
         board = fenToBoard(initFenString);
@@ -60,7 +63,7 @@ public class Board {
             for (int c = 0; c < MAX_COL; c++) {
                 Piece p = board[r][c];
                 if (p != null && p.getColor() == attackerColor) {
-                    if (p.isMoveValid(row, col)) {
+                    if (p.canPieceAttackSquare(row, col)) {
                         return true;
                     }
                 }
@@ -109,14 +112,91 @@ public class Board {
             return false;
         }
 
-        for (int r = 0; r < MAX_ROW; r++) {
-            for (int c = 0; c < MAX_COL; c++) {
-                if (canCheckBeBlocked(r, c, color)) return false;
+        for (int row = 0; row < MAX_ROW; row++) {
+            for (int col = 0; col < MAX_COL; col++) {
+                if (canCheckBeBlocked(row, col, color)) return false;
             }
         }
 
         return true;
     }
+
+    public static boolean isDraw(){
+        boolean isDraw = false;
+        List <Piece> piecesLeft = new ArrayList<>();
+
+        if (movesWithoutCapture == 100 || movesWithoutCapture == 100) return true;
+
+        for (int row = 0; row < MAX_ROW; row++) {
+            for (int col = 0; col < MAX_COL; col++) {
+                Piece piece = getPieceAtSquare(row, col);
+                if (piece != null) piecesLeft.add(piece);
+            }
+        }
+
+        boolean isStalemate = true;
+        for (Piece piece : piecesLeft) {
+            if (isThereValidMove(piece)) isStalemate = false;
+        }
+
+        if (isStalemate && !isKingInCheck(colorToMove)) return true;
+
+        List <Piece> knightsLeft = new ArrayList<>();
+        List <Piece> bishopsLeft = new ArrayList<>();
+        List <Piece> pawnsLeft = new ArrayList<>();
+
+        for (Piece piece : piecesLeft) {
+            if (piece.getClass() == Pawn.class) pawnsLeft.add(piece);
+            if (piece.getClass() == Knight.class) knightsLeft.add(piece);
+            if (piece.getClass() == Bishop.class) bishopsLeft.add(piece);
+            if (piece.getClass() == Queen.class) return false;
+        }
+
+        if (pawnsLeft.isEmpty()) {
+            if (knightsLeft.isEmpty() && bishopsLeft.isEmpty()) return true;
+            if (knightsLeft.isEmpty() && bishopsLeft.size() == 1) return true;
+            if (knightsLeft.size() == 1 && bishopsLeft.isEmpty()) return true;
+            if (knightsLeft.isEmpty() && bishopsLeft.size() == 2) {
+                Bishop bishop1 = (Bishop) bishopsLeft.get(0);
+                Bishop bishop2 = (Bishop) bishopsLeft.get(1);
+
+                if (bishop1.getBishopColor() == bishop2.getBishopColor()) return true;
+            }
+        }
+        /*
+        // TODO: dead position draw
+
+        boolean pawnGridlock = true;
+        for (Piece pawn : pawnsLeft) {
+            if (isThereValidMove(pawn)) pawnGridlock = false;
+        }
+
+        boolean isKingTrapped = true;
+        King king = findKing(colorToMove);
+        List <Square> visitedSquares = new ArrayList<>();
+        visitedSquares.add(king.getSquare());
+        Queue<Square> availableSquaresQueue = new LinkedList<>();
+        availableSquaresQueue.add(king.getSquare());
+        while (!availableSquaresQueue.isEmpty()) {
+            Square square = availableSquaresQueue.poll();
+
+        }
+
+         */
+        return isDraw;
+    }
+
+    public static boolean isThereValidMove(Piece piece) {
+        for (int row = 0; row < Board.MAX_ROW; row++) {
+            for (int col = 0; col < Board.MAX_COL; col++) {
+                if (piece.isMoveValid(row, col)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     public static boolean canCheckBeBlocked(int row, int col, int color) {
         Piece piece = getPieceAtSquare(row, col);
@@ -131,4 +211,11 @@ public class Board {
         }
         return false;
     }
+
+    public static boolean isGameOver(int color){
+        if (isCheckmate(color)) return true;
+        if (isDraw()) return true;
+        return false;
+    }
+
 }

@@ -1,6 +1,7 @@
 package pieces;
 
 import main.Board;
+import util.Square;
 
 import static main.Board.*;
 
@@ -47,7 +48,11 @@ public abstract class Piece {
         return col;
     }
 
-    public void updatePositionOnly(int row, int col) {
+    public Square getSquare(){
+        return new Square(row,col);
+    }
+
+    public void setPiecePosition(int row, int col) {
         this.row = row;
         this.col = col;
     }
@@ -59,28 +64,39 @@ public abstract class Piece {
         int originalCol = getCol();
         Piece capturedPiece = getPieceAtSquare(row, col);
 
+        movesWithoutCapture = (capturedPiece == null) ? movesWithoutCapture + 1 : 0;
+        movesNotWithPawns = (this.getClass() != Pawn.class) ? movesNotWithPawns + 1 : 0;
+
         addMoveToHistory(this, row, col, capturedPiece != null, capturedPiece);
 
         board[row][col] = this;
         board[originalRow][originalCol] = null;
-        updatePositionOnly(row, col);
+        setPiecePosition(row, col);
 
         if (isKingInCheck(this.getColor())) {
             board[originalRow][originalCol] = this;
             board[row][col] = capturedPiece;
-            updatePositionOnly(originalRow, originalCol);
+            setPiecePosition(originalRow, originalCol);
             return false;
         }
 
-        if (this instanceof Rook) ((Rook) this).wasMoved = true;
-        if (this instanceof King) ((King) this).wasMoved = true;
-        if (this instanceof Pawn) ((Pawn) this).wasMoved = true;
+        if (this.getClass() == Rook.class) ((Rook) this).wasMoved = true;
+        if (this.getClass() == King.class) ((King) this).wasMoved = true;
+        if (this.getClass() == Pawn.class) ((Pawn) this).wasMoved = true;
 
         Board.colorToMove = 1 - Board.colorToMove;
         return true;
     }
 
-    public abstract boolean isMoveValid(int row, int col);
+    public boolean isMoveValid(int row, int col) {
+        if (isKingInCheck(getColor())) {
+            if (!canPieceBlockCheck(row, col, getColor())) return false;
+        }
+
+        if (!canPieceAttackSquare(row, col)) return false;
+
+        return true;
+    }
 
     public boolean canPieceBlockCheck(int row, int col, int color){
         int originalRow = this.getRow();
@@ -89,14 +105,16 @@ public abstract class Piece {
 
         board[row][col] = this;
         board[originalRow][originalCol] = null;
-        this.updatePositionOnly(row, col);
+        this.setPiecePosition(row, col);
 
         boolean stillInCheck = isKingInCheck(color);
 
         board[originalRow][originalCol] = this;
         board[row][col] = capturedPiece;
-        this.updatePositionOnly(originalRow, originalCol);
+        this.setPiecePosition(originalRow, originalCol);
 
         return !stillInCheck;
     }
+
+    public abstract boolean canPieceAttackSquare(int row, int col);
 }

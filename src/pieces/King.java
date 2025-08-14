@@ -24,7 +24,6 @@ public class King extends Piece {
     @Override
     public boolean isMoveValid(int row, int col) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
-
         int deltaRow = Math.abs(row - getRow());
         int deltaCol = Math.abs(col - getCol());
 
@@ -53,14 +52,19 @@ public class King extends Piece {
 
         board[row][col] = this;
         board[getRow()][getCol()] = null;
-        updatePositionOnly(row, col);
+        setPiecePosition(row, col);
 
         board[row][rookEndCol] = rook;
         board[row][rookStartCol] = null;
-        rook.updatePositionOnly(row, rookEndCol);
+        rook.setPiecePosition(row, rookEndCol);
 
         this.wasMoved = true;
         ((Rook) rook).wasMoved = true;
         Board.colorToMove = (Board.colorToMove == Piece.WHITE) ? Piece.BLACK : Piece.WHITE;
+    }
+
+    @Override
+    public boolean canPieceAttackSquare(int row, int col) {
+        return isMoveValid(row, col);
     }
 }

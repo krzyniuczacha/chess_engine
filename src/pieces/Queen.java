@@ -9,7 +9,7 @@ public class Queen extends Piece {
     }
 
     @Override
-    public boolean isMoveValid(int row, int col) {
+    public boolean canPieceAttackSquare(int row, int col) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = row - getRow();
@@ -47,11 +47,6 @@ public class Queen extends Piece {
                 if (isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) return false;
             }
         }
-
-        if (isKingInCheck(getColor())) {
-            if (!canPieceBlockCheck(row, col, getColor())) return false;
-        }
-
         return true;
     }
 }

@@ -3,13 +3,19 @@ package pieces;
 import static main.Board.*;
 
 public class Bishop extends Piece {
+    public static final int lightSquare = 1;
+    public static final int darkSquare = 0;
 
     public Bishop(int color,int row, int col) {
         super(color, row, col);
     }
 
+    public int getBishopColor(){
+        return ((getRow() + getCol()) % 2 == 1) ? lightSquare : darkSquare;
+    }
+
     @Override
-    public boolean isMoveValid(int row, int col) {
+    public boolean canPieceAttackSquare(int row, int col) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = row - getRow();
@@ -32,11 +38,6 @@ public class Bishop extends Piece {
                 return false;
             }
         }
-
-        if (isKingInCheck(getColor())) {
-            if (!canPieceBlockCheck(row, col, getColor())) return false;
-        }
-
         return true;
     }
 }

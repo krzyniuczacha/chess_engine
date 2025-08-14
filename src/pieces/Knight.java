@@ -9,7 +9,7 @@ public class Knight extends Piece {
     }
 
     @Override
-    public boolean isMoveValid(int row, int col) {
+    public boolean canPieceAttackSquare(int row, int col) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = Math.abs(row - getRow());
@@ -22,12 +22,6 @@ public class Knight extends Piece {
         if (isSquareTaken(row, col)) {
             return getPieceAtSquare(row, col).getColor() != this.getColor();
         }
-
-        if (isKingInCheck(getColor())) {
-            if (!canPieceBlockCheck(row, col, getColor())) return false;
-        }
-
-
         return true;
     }
 }
