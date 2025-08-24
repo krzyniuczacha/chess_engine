@@ -1,6 +1,6 @@
 package pieces;
 
-import static main.Board.*;
+import main.Board;
 
 public class Bishop extends Piece {
     public static final int lightSquare = 1;
@@ -15,7 +15,7 @@ public class Bishop extends Piece {
     }
 
     @Override
-    public boolean canPieceAttackSquare(int row, int col) {
+    public boolean canAttackSquare(int row, int col, Board board) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = row - getRow();
@@ -24,8 +24,8 @@ public class Bishop extends Piece {
         if (Math.abs(deltaRow) != Math.abs(deltaCol)) return false;
         if (deltaRow == 0) return false;
 
-        if (isSquareTaken(row, col)) {
-            if (getPieceAtSquare(row, col).getColor() == this.getColor()) {
+        if (board.isSquareTaken(row, col)) {
+            if (board.getPieceAtSquare(row, col).getColor() == this.getColor()) {
                 return false;
             }
         }
@@ -34,7 +34,7 @@ public class Bishop extends Piece {
         int colStep = (deltaCol > 0) ? 1 : -1;
 
         for (int i = 1; i < Math.abs(deltaRow); i++) {
-            if (isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) {
+            if (board.isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) {
                 return false;
             }
         }

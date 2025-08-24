@@ -31,4 +31,16 @@ public class Move {
     public int getEndRow() {
         return endRow;
     }
+
+    public int getStartCol() {
+        return startCol;
+    }
+
+    public int getEndCol(){
+        return endCol;
+    }
+
+    public Piece getPieceCaptured() {
+        return pieceCaptured;
+    }
 }

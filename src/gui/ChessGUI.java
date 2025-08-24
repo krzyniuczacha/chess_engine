@@ -71,9 +71,9 @@ public class ChessGUI extends JFrame {
             int guiRow = e.getY() / TILE_SIZE;
             int row = 7 - guiRow;
 
-            Piece clickedPiece = Board.getPieceAtSquare(row, col);
+            Piece clickedPiece = board.getPieceAtSquare(row, col);
 
-            if (clickedPiece != null && clickedPiece.getColor() == Board.colorToMove) {
+            if (clickedPiece != null && clickedPiece.getColor() == board.colorToMove) {
                 draggedPiece = clickedPiece;
                 selectedRow = row;
                 selectedCol = col;
@@ -115,10 +115,10 @@ public class ChessGUI extends JFrame {
 
                 boolean moveSucceeded = false;
                 if (validMoveFound) {
-                    if (draggedPiece.move(row, col)) {
+                    if (board.makeMove(draggedPiece, row, col)) {
                         moveSucceeded = true;
-                        if (Board.isCheckmate(Board.colorToMove)) gameEnded = true;
-                        if (Board.isDraw()) gameDrawn = true;
+                        if (board.isCheckmate(board.colorToMove)) gameEnded = true;
+                        if (board.isDraw()) gameDrawn = true;
                     }
                 }
 
@@ -132,19 +132,19 @@ public class ChessGUI extends JFrame {
 
                 boardPanel.repaint();
 
-                String winner = (Board.colorToMove == Piece.WHITE) ? "Black" : "White";
+                String winner = (board.colorToMove == Piece.WHITE) ? "Black" : "White";
                 if (gameEnded) JOptionPane.showMessageDialog(boardPanel, "Checkmate! " + winner + " wins.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
                 if (gameDrawn) JOptionPane.showMessageDialog(boardPanel, "Draw!", "Game Over", JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }
 
-    public static String getPromotionChoice(){
+    public static String getPromotionChoice(Board board){
         AtomicReference<String> selectedPiece = new AtomicReference<>(null);
         JDialog dialog = new JDialog((Frame) null, "Pawn Promotion", true);
         dialog.setLayout(new FlowLayout());
 
-        String color = (Board.colorToMove == Piece.WHITE) ? "white" : "black";
+        String color = (board.colorToMove == Piece.WHITE) ? "white" : "black";
 
         ImageIcon queenIcon = new ImageIcon("res/pieces/" + color + "-queen.png");
         ImageIcon rookIcon = new ImageIcon("res/pieces/" + color + "-rook.png");
@@ -192,7 +192,7 @@ public class ChessGUI extends JFrame {
         validMoves.clear();
         for (int r = 0; r < Board.MAX_ROW; r++) {
             for (int c = 0; c < Board.MAX_COL; c++) {
-                if (piece.isMoveValid(r, c)) {
+                if (board.isMoveValid(piece, r, c)) {
                     validMoves.add(new Point(c, r));
                 }
             }
@@ -226,7 +226,7 @@ public class ChessGUI extends JFrame {
     private void drawPieces(Graphics g) {
         for (int row = 0; row < Board.MAX_ROW; row++) {
             for (int col = 0; col < Board.MAX_COL; col++) {
-                Piece p = Board.getPieceAtSquare(row, col);
+                Piece p = board.getPieceAtSquare(row, col);
                 if (p != null && p != draggedPiece) {
                     BufferedImage img = p.getImage(getImageName(p));
                     if (img != null) {

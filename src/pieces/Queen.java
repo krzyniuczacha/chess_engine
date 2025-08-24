@@ -1,6 +1,6 @@
 package pieces;
 
-import static main.Board.*;
+import main.Board;
 
 public class Queen extends Piece {
 
@@ -9,7 +9,7 @@ public class Queen extends Piece {
     }
 
     @Override
-    public boolean canPieceAttackSquare(int row, int col) {
+    public boolean canAttackSquare(int row, int col, Board board) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = row - getRow();
@@ -22,8 +22,8 @@ public class Queen extends Piece {
 
         if (!isRookMove && !isBishopMove) return false;
 
-        if (isSquareTaken(row, col)) {
-            if (getPieceAtSquare(row, col).getColor() == this.getColor()) {
+        if (board.isSquareTaken(row, col)) {
+            if (board.getPieceAtSquare(row, col).getColor() == this.getColor()) {
                 return false;
             }
         }
@@ -32,19 +32,19 @@ public class Queen extends Piece {
             if (deltaRow == 0) {
                 int step = (deltaCol > 0) ? 1 : -1;
                 for (int i = 1; i < Math.abs(deltaCol); i++) {
-                    if (isSquareTaken(getRow(), getCol() + i * step)) return false;
+                    if (board.isSquareTaken(getRow(), getCol() + i * step)) return false;
                 }
             } else {
                 int step = (deltaRow > 0) ? 1 : -1;
                 for (int i = 1; i < Math.abs(deltaRow); i++) {
-                    if (isSquareTaken(getRow() + i * step, getCol())) return false;
+                    if (board.isSquareTaken(getRow() + i * step, getCol())) return false;
                 }
             }
         } else {
             int rowStep = (deltaRow > 0) ? 1 : -1;
             int colStep = (deltaCol > 0) ? 1 : -1;
             for (int i = 1; i < Math.abs(deltaRow); i++) {
-                if (isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) return false;
+                if (board.isSquareTaken(getRow() + i * rowStep, getCol() + i * colStep)) return false;
             }
         }
         return true;

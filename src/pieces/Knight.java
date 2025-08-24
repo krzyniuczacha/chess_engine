@@ -1,6 +1,6 @@
 package pieces;
 
-import static main.Board.*;
+import main.Board;
 
 public class Knight extends Piece {
 
@@ -9,7 +9,7 @@ public class Knight extends Piece {
     }
 
     @Override
-    public boolean canPieceAttackSquare(int row, int col) {
+    public boolean canAttackSquare(int row, int col, Board board) {
         if (row < 0 || row > 7 || col < 0 || col > 7) return false;
 
         int deltaRow = Math.abs(row - getRow());
@@ -19,8 +19,8 @@ public class Knight extends Piece {
             return false;
         }
 
-        if (isSquareTaken(row, col)) {
-            return getPieceAtSquare(row, col).getColor() != this.getColor();
+        if (board.isSquareTaken(row, col)) {
+            return board.getPieceAtSquare(row, col).getColor() != this.getColor();
         }
         return true;
     }
