@@ -5,6 +5,8 @@ import pieces.*;
 import players.Player;
 import util.Move;
 
+import javax.swing.*;
+
 import static util.FEN.fenToBoard;
 
 import java.util.*;
@@ -16,26 +18,69 @@ public class Board {
     private  Stack<Move> moveHistory;
     public static final String initFenString = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
     public static final String testPromotion = "4k3/8/8/8/8/8/7P/4K3";
+    public static final String testDrawByRepetition = "6k1/6p1/8/6KQ/1r6/q2b4/8/8";
     public int colorToMove;
     public int movesWithoutCapture, movesNotWithPawns;
     public Player whitePlayer, blackPlayer;
 
     public Board(){
-        board = fenToBoard(testPromotion);
+        board = fenToBoard(initFenString);
         moveHistory = new Stack<>();
         colorToMove = Piece.WHITE;
+        movesWithoutCapture = 0;
+        movesNotWithPawns = 0;
     }
 
     public Board(Board board1){
-        board = new Piece[MAX_COL][MAX_ROW];
-        for (int i = 0; i < MAX_ROW; i++){
-            for (int j = 0; j < MAX_COL; j++){
-                board[i][j] = board1.getBoard()[i][j];
+        board = new Piece[MAX_ROW][MAX_COL];
+
+        for (int r = 0; r < MAX_ROW; r++) {
+            for (int c = 0; c < MAX_COL; c++) {
+                Piece p = board1.getBoard()[r][c];
+                if (p == null) {
+                    board[r][c] = null;
+                    continue;
+                }
+
+                if (p instanceof Pawn) {
+                    Pawn op = (Pawn) p;
+                    Pawn np = new Pawn(op.getColor(), op.getRow(), op.getCol());
+                    np.wasMoved = op.wasMoved;
+                    board[r][c] = np;
+                } else if (p instanceof Rook) {
+                    Rook or = (Rook) p;
+                    Rook nr = new Rook(or.getColor(), or.getRow(), or.getCol());
+                    nr.wasMoved = or.wasMoved;
+                    board[r][c] = nr;
+                } else if (p instanceof Knight) {
+                    Knight on = (Knight) p;
+                    Knight nn = new Knight(on.getColor(), on.getRow(), on.getCol());
+                    board[r][c] = nn;
+                } else if (p instanceof Bishop) {
+                    Bishop ob = (Bishop) p;
+                    Bishop nb = new Bishop(ob.getColor(), ob.getRow(), ob.getCol());
+                    board[r][c] = nb;
+                } else if (p instanceof Queen) {
+                    Queen oq = (Queen) p;
+                    Queen nq = new Queen(oq.getColor(), oq.getRow(), oq.getCol());
+                    board[r][c] = nq;
+                } else if (p instanceof King) {
+                    King ok = (King) p;
+                    King nk = new King(ok.getColor(), ok.getRow(), ok.getCol());
+                    nk.wasMoved = ok.wasMoved;
+                    board[r][c] = nk;
+                } else {
+                    board[r][c] = p;
+                }
             }
         }
-        moveHistory = new Stack<>();
-        colorToMove = Piece.WHITE;
+
+        moveHistory = (Stack<Move>) board1.moveHistory.clone();
+        colorToMove = board1.colorToMove;
+        movesWithoutCapture = board1.movesWithoutCapture;
+        movesNotWithPawns = board1.movesNotWithPawns;
     }
+
 
     public Piece[][] getBoard(){
         return board;
@@ -177,31 +222,30 @@ public class Board {
                 if (bishop1.getBishopColor() == bishop2.getBishopColor()) return true;
             }
         }
-        /*
-        // TODO: dead position draw
 
-        boolean pawnGridlock = true;
-        for (Piece pawn : pawnsLeft) {
-            if (isThereValidMove(pawn)) pawnGridlock = false;
+        boolean drawByRepetition = true;
+
+        Stack<Move> stack = (Stack<Move>) moveHistory.clone();
+
+        if (stack.size() < 8) return false;
+
+        Move move1 = stack.pop();
+        Move move2 = stack.pop();
+        Move move3 = stack.pop();
+        Move move4 = stack.pop();
+
+        if (!move1.equals(move3) || !move2.equals(move4)) {
+            drawByRepetition = false;
         }
 
-        boolean isKingTrapped = true;
-        King king = findKing(colorToMove);
-        List <Square> visitedSquares = new ArrayList<>();
-        visitedSquares.add(king.getSquare());
-        Queue<Square> availableSquaresQueue = new LinkedList<>();
-        availableSquaresQueue.add(king.getSquare());
-        while (!availableSquaresQueue.isEmpty()) {
-            Square square = availableSquaresQueue.poll();
+        if (drawByRepetition) return true;
 
-        }
 
-         */
         return isDraw;
     }
 
     public boolean isThereValidMove(Piece piece) {
-        return getAvailableMoves(piece) != null;
+        return getAvailableMoves(piece).isEmpty();
     }
 
     public boolean canCheckBeBlocked(int row, int col, int color) {
@@ -251,8 +295,11 @@ public class Board {
         return allMoves;
     }
 
-    public void makeMove(Move move){
-        this.makeMove(move.getPieceMoved(), move.getEndRow(), move.getEndCol());
+    public boolean makeMove(Move move) {
+        Piece pieceOnThisBoard = getPieceAtSquare(move.getPieceMoved().getRow(), move.getPieceMoved().getCol());
+
+
+        return this.makeMove(pieceOnThisBoard, move.getEndRow(), move.getEndCol());
     }
 
     public boolean makeMove(Piece piece, int row, int col){
@@ -292,7 +339,7 @@ public class Board {
             if (isPromotion) {
                 addMoveToHistory(piece, row, col, capturedPiece != null, capturedPiece);
 
-                Piece promoted = getPromotionPiece(colorToMove, row, col);
+                Piece promoted = getPromotionPiece(piece.getColor(), row, col);
                 board[row][col] = promoted;
                 board[originalRow][originalCol] = null;
                 piece.setPiecePosition(row, col);
@@ -360,6 +407,10 @@ public class Board {
     }
 
     public boolean isMoveValid(Piece piece, int row, int col) {
+        if (row == piece.getRow() && col == piece.getCol()) {
+            return false;
+        }
+
         if (isKingInCheck(piece.getColor())) {
             if (!canPieceBlockCheck(piece ,row, col, piece.getColor())) return false;
         }
