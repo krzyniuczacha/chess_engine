@@ -22,6 +22,8 @@ public class Board {
     public int colorToMove;
     public int movesWithoutCapture, movesNotWithPawns;
     public Player whitePlayer, blackPlayer;
+    public boolean silentPromotion = false;
+
 
     public Board(){
         board = fenToBoard(initFenString);
@@ -184,7 +186,7 @@ public class Board {
         boolean isDraw = false;
         List <Piece> piecesLeft = new ArrayList<>();
 
-        if (movesWithoutCapture == 100 || movesWithoutCapture == 100) return true;
+        if (movesWithoutCapture >= 100 || movesNotWithPawns >= 100) return true;
 
         for (int row = 0; row < MAX_ROW; row++) {
             for (int col = 0; col < MAX_COL; col++) {
@@ -223,29 +225,39 @@ public class Board {
             }
         }
 
-        boolean drawByRepetition = true;
-
-        Stack<Move> stack = (Stack<Move>) moveHistory.clone();
-
-        if (stack.size() < 8) return false;
-
-        Move move1 = stack.pop();
-        Move move2 = stack.pop();
-        Move move3 = stack.pop();
-        Move move4 = stack.pop();
-
-        if (!move1.equals(move3) || !move2.equals(move4)) {
-            drawByRepetition = false;
-        }
-
-        if (drawByRepetition) return true;
+        if (isThreefoldRepetition()) return true;
 
 
         return isDraw;
     }
 
+    private boolean isThreefoldRepetition() {
+        if (moveHistory.size() < 8) return false;
+
+        String currentFen = util.FEN.boardToFen(this);
+        int count = 1;
+
+        List<Move> history = new ArrayList<>(moveHistory);
+
+        Board replay = new Board();
+        replay.silentPromotion = true;
+        for (int i = 0; i < history.size() - 1; i++) {
+            Move m = history.get(i);
+            Piece p = replay.getPieceAtSquare(m.getStartRow(), m.getStartCol());
+            if (p != null) replay.makeMove(p, m.getEndRow(), m.getEndCol());
+
+            if (util.FEN.boardToFen(replay).equals(currentFen)) {
+                count++;
+                if (count >= 3) return true;
+            }
+        }
+        return false;
+    }
+
+
+
     public boolean isThereValidMove(Piece piece) {
-        return getAvailableMoves(piece).isEmpty();
+        return !getAvailableMoves(piece).isEmpty();
     }
 
     public boolean canCheckBeBlocked(int row, int col, int color) {
@@ -254,7 +266,7 @@ public class Board {
             for (int destR = 0; destR < MAX_ROW; destR++) {
                 for (int destC = 0; destC < MAX_COL; destC++) {
                     if (isMoveValid(piece, destR, destC)) {
-                       if (canPieceBlockCheck(piece, destR, destC, color)) return true;
+                        if (canPieceBlockCheck(piece, destR, destC, color)) return true;
                     }
                 }
             }
@@ -425,6 +437,7 @@ public class Board {
     }
 
     public Piece getPromotionPiece(int color, int row, int col) {
+        if (silentPromotion) return new Queen(color, row, col);
         Piece promotedPiece = null;
         String piece = ChessGUI.getPromotionChoice(this);
 

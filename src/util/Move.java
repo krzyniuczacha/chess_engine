@@ -43,4 +43,17 @@ public class Move {
     public Piece getPieceCaptured() {
         return pieceCaptured;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Move)) return false;
+        Move other = (Move) obj;
+        return this.startRow == other.startRow
+                && this.startCol == other.startCol
+                && this.endRow == other.endRow
+                && this.endCol == other.endCol
+                && this.pieceMoved != null && other.pieceMoved != null
+                && this.pieceMoved.getClass() == other.pieceMoved.getClass()
+                && this.pieceMoved.getColor() == other.pieceMoved.getColor();
+    }
 }

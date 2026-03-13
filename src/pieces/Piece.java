@@ -55,5 +55,15 @@ public abstract class Piece {
         this.col = col;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+
+        Piece o = (Piece) other;
+
+        return row == o.row && col == o.col &&  color == o.color;
+    }
+
     public abstract boolean canAttackSquare(int row, int col, Board board);
 }
